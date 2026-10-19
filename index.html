@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Kanso — Daily Rituals</title>
+
+  <!-- iOS Web App Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Kanso" />
+  <meta name="theme-color" content="#F7F6F2" />
+
+  <!-- Clean SVG Data URI Icon (No Base64 strings to trigger false-positive scanners) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%231C1C1A'/%3E%3Ccircle cx='90' cy='90' r='44' fill='none' stroke='%23F7F6F2' stroke-width='10' stroke-linecap='round' stroke-dasharray='220 60'/%3E%3Ccircle cx='90' cy='90' r='12' fill='%234A6B53'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' fill='%231C1C1A'/%3E%3Ccircle cx='90' cy='90' r='44' fill='none' stroke='%23F7F6F2' stroke-width='10' stroke-linecap='round' stroke-dasharray='220 60'/%3E%3Ccircle cx='90' cy='90' r='12' fill='%234A6B53'/%3E%3C/svg%3E" />
+
+  <style>
+    :root {
+      --bg: #F7F6F2;
+      --card: #FFFFFF;
+      --surface: #EFECE6;
+      --text: #1C1C1A;
+      --muted: #86847E;
+      --border: #E5E2DC;
+      --accent: #4A6B53;
+      --accent-soft: #E7EFE9;
+      --warm: #C87D55;
+      --freeze: #5B8291;
+      --danger: #B85450;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --safe-top: env(safe-area-inset-top, 20px);
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121211;
+        --card: #1C1C1A;
+        --surface: #262623;
+        --text: #F2F0EA;
+        --muted: #8E8C85;
+        --border: #2E2E2A;
+        --accent: #689675;
+        --accent-soft: #1F2E23;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: calc(var(--safe-top) + 12px) 18px calc(var(--safe-bottom) + 92px);
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 2px 0 0;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-wrap svg {
+      transform: rotate(-90deg);
+      width: 48px;
+      height: 48px;
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 4.5;
+    }
+
+    .ring-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 4.5;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ring-label {
+      position: absolute;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* 7-Day Strip */
+    .week-strip {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 20px;
+      background: var(--card);
+      padding: 8px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .day-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .day-pill.active {
+      background: var(--text);
+      color: var(--bg);
+    }
+
+    .day-name {
+      font-size: 10px;
+      text-transform: uppercase;
+      opacity: 0.65;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .day-num {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .day-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      margin-top: 4px;
+      background: transparent;
+    }
+
+    .day-pill.has-logs .day-dot {
+      background: var(--accent);
+    }
+
+    .day-pill.active.has-logs .day-dot {
+      background: var(--bg);
+    }
+
+    /* Habit Cards */
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .habit-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 15px 16px;
+      transition: transform 0.15s ease;
+    }
+
+    .habit-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .habit-info {
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .habit-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .habit-name {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .habit-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .habit-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .check-btn {
+      min-width: 42px;
+      height: 42px;
+      padding: 0 12px;
+      border-radius: 13px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .check-btn.done {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #FFFFFF;
+    }
+
+    .check-btn.frozen {
+      background: var(--freeze);
+      border-color: var(--freeze);
+      color: #FFFFFF;
+    }
+
+    /* Mini 7-day dots inside card */
+    .mini-week {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .mini-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .mini-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .mini-dot.done {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .mini-dot.partial {
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .mini-dot.frozen {
+      background: var(--freeze);
+      color: #fff;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+
+    .section-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin: 0 0 14px;
+      line-height: 1.45;
+    }
+
+    /* 28-Day Heatmap Grid */
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .heat-cell {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: var(--surface);
+    }
+
+    .heat-cell.done {
+      background: var(--accent);
+    }
+
+    .heat-cell.frozen {
+      background: var(--freeze);
+    }
+
+    /* iOS Widget Preview */
+    .ios-widget-preview {
+      background: #1C1C1A;
+      color: #F7F6F2;
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+      margin-bottom: 14px;
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9E9C94;
+      margin-bottom: 10px;
+    }
+
+    .widget-rows {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .widget-item {
+      background: #2A2A27;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: var(--text);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 10px;
+      user-select: text;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 10px);
+      left: 18px;
+      right: 18px;
+      max-width: 444px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 6px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+      z-index: 50;
+    }
+
+    .nav-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 6px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-btn.active {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .add-fab {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: none;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 20px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Modal Sheet */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: var(--card);
+      width: 100%;
+      max-width: 480px;
+      border-radius: 24px 24px 0 0;
+      padding: 20px 18px calc(var(--safe-bottom) + 20px);
+    }
+
+    .toast {
+      position: fixed;
+      top: calc(var(--safe-top) + 12px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: var(--bg);
+      padding: 9px 16px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast" class="toast">Saved</div>
+
+  <header>
+    <div>
+      <div class="brand-sub" id="dateSub">TODAY</div>
+      <h1 id="headerTitle">Kanso</h1>
+    </div>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 48 48">
+        <circle class="ring-bg" cx="24" cy="24" r="19"></circle>
+        <circle id="ringFill" class="ring-fill" cx="24" cy="24" r="19" stroke-dasharray="119.38" stroke-dashoffset="119.38"></circle>
+      </svg>
+      <div class="ring-label" id="ringText">0%</div>
+    </div>
+  </header>
+
+  <!-- VIEW 1: TODAY -->
+  <main id="view-today" class="view active">
+    <div id="weekStrip" class="week-strip"></div>
+    <div id="habitList" class="habit-list"></div>
+  </main>
+
+  <!-- VIEW 2: STREAKS & BACKUP -->
+  <section id="view-streaks" class="view">
+    <div id="streaksContainer"></div>
+
+    <div class="section-card">
+      <h3 class="section-title">Local Data & Backup</h3>
+      <p class="section-desc">All data lives privately in your iPhone's local storage. Export a JSON backup anytime.</p>
+      <button class="btn" onclick="exportData()">Export JSON Backup</button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">Import JSON Backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)" />
+    </div>
+  </section>
+
+  <!-- VIEW 3: WIDGETS & SHORTCUTS -->
+  <section id="view-widgets" class="view">
+    <div class="ios-widget-preview">
+      <div class="widget-header">
+        <span>Kanso Medium Widget</span>
+        <span id="widgetPreviewStat">0/0 Done</span>
+      </div>
+      <div id="widgetPreviewRows" class="widget-rows"></div>
+    </div>
+
+    <div class="section-card">
+      <h3 class="section-title">iOS Home Screen Widget (Scriptable)</h3>
+      <p class="section-desc">
+        1. Install the free <strong>Scriptable</strong> app from the App Store.<br/>
+        2. Tap below to copy your live widget script with your current rituals embedded.<br/>
+        3. Add a Scriptable widget to your iPhone Home Screen and choose the script.
+      </p>
+      <button class="btn btn-primary" onclick="copyScriptableWidget()">Copy Scriptable Widget Code</button>
+    </div>
+
+    <div class="section-card">
+      <h3 class="section-title">1-Tap Apple Shortcuts Deep Links</h3>
+      <p class="section-desc">Use the iOS <strong>Shortcuts</strong> app ("Open URL" action) or your iPhone Action Button to check off a ritual immediately on open:</p>
+      <div id="shortcutLinks"></div>
+    </div>
+  </section>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchView('today', this)">Today</button>
+    <button class="nav-btn" onclick="switchView('streaks', this)">Streaks</button>
+    <button class="nav-btn" onclick="switchView('widgets', this)">Widgets</button>
+    <button class="add-fab" onclick="openHabitModal()" aria-label="Add Ritual">+</button>
+  </nav>
+
+  <!-- ADD / EDIT HABIT MODAL -->
+  <div id="habitModal" class="modal-backdrop" onclick="if(event.target===this)closeHabitModal()">
+    <div class="modal-sheet">
+      <h3 class="section-title" id="modalTitle">New Ritual</h3>
+      <input type="hidden" id="editHabitId" />
+      <label class="brand-sub">Name</label>
+      <input type="text" id="habitNameInput" placeholder="e.g. Morning Run, Read 20 Pages" />
+
+      <label class="brand-sub">Icon / Emoji</label>
+      <input type="text" id="habitEmojiInput" placeholder="🌿" maxlength="2" />
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div>
+          <label class="brand-sub">Daily Target</label>
+          <input type="number" id="habitTargetInput" value="1" min="1" step="any" />
+        </div>
+        <div>
+          <label class="brand-sub">Step per Tap</label>
+          <input type="number" id="habitStepInput" value="1" min="0.1" step="any" />
+        </div>
+      </div>
+
+      <label class="brand-sub">Unit (Optional, e.g. km, L, min)</label>
+      <input type="text" id="habitUnitInput" placeholder="Leave blank for simple check-off" />
+
+      <button class="btn btn-primary" onclick="saveHabitFromModal()">Save Ritual</button>
+      <button class="btn" id="freezeBtn" style="display:none" onclick="toggleFreezeSelectedDate()">❄️ Toggle Rest / Freeze Day</button>
+      <button class="btn" id="deleteBtn" style="display:none; color:var(--danger)" onclick="deleteCurrentHabit()">Delete Ritual</button>
+      <button class="btn" onclick="closeHabitModal()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- FOCUS TIMER MODAL -->
+  <div id="timerModal" class="modal-backdrop" onclick="if(event.target===this)closeTimerModal()">
+    <div class="modal-sheet" style="text-align:center;">
+      <div class="brand-sub" id="timerHabitTitle">FOCUS SESSION</div>
+      <div id="timerDisplay" style="font-size:48px; font-weight:700; margin:16px 0; font-variant-numeric:tabular-nums;">25:00</div>
+      <div style="display:flex; gap:8px; justify-content:center; margin-bottom:14px;">
+        <button class="btn" style="width:auto; margin:0;" onclick="setTimerMinutes(10)">10m</button>
+        <button class="btn" style="width:auto; margin:0;" onclick="setTimerMinutes(25)">25m</button>
+        <button class="btn" style="width:auto; margin:0;" onclick="setTimerMinutes(45)">45m</button>
+      </div>
+      <button class="btn btn-primary" id="timerStartBtn" onclick="toggleTimer()">Start Focus</button>
+      <button class="btn" onclick="closeTimerModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'kanso_clean_v2';
+
+    function formatDateKey(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    const todayKey = formatDateKey(new Date());
+    let selectedDateKey = todayKey;
+
+    const defaultHabits = [
+      { id: 'h1', name: 'Hydrate', emoji: '💧', target: 2.5, step: 0.5, unit: 'L', logs: {}, freezes: {} },
+      { id: 'h2', name: 'Zone 2 Run', emoji: '🏃', target: 1, step: 1, unit: '', logs: {}, freezes: {} },
+      { id: 'h3', name: 'Deep Work Block', emoji: '📐', target: 2, step: 1, unit: 'hr', logs: {}, freezes: {} },
+      { id: 'h4', name: 'Read 20 Pages', emoji: '📖', target: 1, step: 1, unit: '', logs: {}, freezes: {} }
+    ];
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return { habits: defaultHabits };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      renderAll();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1800);
+    }
+
+    // Handle ?quicklog=HabitName URL parameter for Apple Shortcuts
+    function checkQuickLogParam() {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('quicklog');
+      if (!q) return;
+      const habit = state.habits.find(h => h.name.toLowerCase() === q.toLowerCase());
+      if (habit) {
+        incrementHabit(habit.id, todayKey);
+        showToast(`Logged ${habit.emoji} ${habit.name}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
+    function getLastNDays(n) {
+      const arr = [];
+      for (let i = n - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        arr.push(d);
+      }
+      return arr;
+    }
+
+    function isHabitCompletedOn(habit, dateKey) {
+      return (habit.logs[dateKey] || 0) >= habit.target;
+    }
+
+    function calculateStreak(habit) {
+      let streak = 0;
+      const cursor = new Date();
+      for (let i = 0; i < 365; i++) {
+        const key = formatDateKey(cursor);
+        const done = isHabitCompletedOn(habit, key);
+        const frozen = !!(habit.freezes && habit.freezes[key]);
+        if (done) {
+          streak++;
+        } else if (frozen) {
+          // Rest day preserves streak
+        } else {
+          if (key !== todayKey) break;
+        }
+        cursor.setDate(cursor.getDate() - 1);
+      }
+      return streak;
+    }
+
+    function incrementHabit(id, dateKey = selectedDateKey) {
+      const h = state.habits.find(x => x.id === id);
+      if (!h) return;
+      const current = h.logs[dateKey] || 0;
+      const next = Number((current + h.step).toFixed(2));
+      if (current >= h.target) {
+        delete h.logs[dateKey];
+      } else {
+        h.logs[dateKey] = Math.min(next, h.target);
+      }
+      saveState();
+    }
+
+    function renderWeekStrip() {
+      const strip = document.getElementById('weekStrip');
+      const days = getLastNDays(7);
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      strip.innerHTML = days.map(d => {
+        const key = formatDateKey(d);
+        const isSelected = key === selectedDateKey;
+        const anyDone = state.habits.some(h => isHabitCompletedOn(h, key));
+        return `
+          <div class="day-pill ${isSelected ? 'active' : ''} ${anyDone ? 'has-logs' : ''}" onclick="selectDate('${key}')">
+            <span class="day-name">${dayNames[d.getDay()]}</span>
+            <span class="day-num">${d.getDate()}</span>
+            <span class="day-dot"></span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('dateSub').textContent =
+        selectedDateKey === todayKey ? 'TODAY' : selectedDateKey;
+    }
+
+    function selectDate(key) {
+      selectedDateKey = key;
+      renderAll();
+    }
+
+    function renderHabits() {
+      const list = document.getElementById('habitList');
+      const last7 = getLastNDays(7);
+      let completedToday = 0;
+
+      list.innerHTML = state.habits.map(h => {
+        const val = h.logs[selectedDateKey] || 0;
+        const done = val >= h.target;
+        const frozen = !!(h.freezes && h.freezes[selectedDateKey]);
+        if (done || frozen) completedToday++;
+        const streak = calculateStreak(h);
+
+        const btnLabel = frozen
+          ? '❄️'
+          : h.target > 1
+            ? `${val}/${h.target}${h.unit}`
+            : (done ? '✓' : '');
+
+        const miniDots = last7.map(d => {
+          const k = formatDateKey(d);
+          const v = h.logs[k] || 0;
+          const isDone = v >= h.target;
+          const isPart = v > 0 && v < h.target;
+          const isFrz = !!(h.freezes && h.freezes[k]);
+          const cls = isFrz ? 'frozen' : isDone ? 'done' : isPart ? 'partial' : '';
+          return `<div class="mini-dot ${cls}" onclick="incrementHabit('${h.id}', '${k}')">${d.getDate()}</div>`;
+        }).join('');
+
+        return `
+          <div class="habit-card">
+            <div class="habit-top">
+              <div class="habit-info" onclick="openHabitModal('${h.id}')">
+                <div class="habit-title-row">
+                  <span>${h.emoji}</span>
+                  <span class="habit-name">${h.name}</span>
+                </div>
+                <div class="habit-meta">
+                  <span>🔥 ${streak}d streak</span>
+                  ${h.unit ? `<span>• ${h.target}${h.unit} daily</span>` : ''}
+                </div>
+              </div>
+              <div class="habit-actions">
+                <button class="icon-btn" title="Focus Timer" onclick="openTimerModal('${h.id}')">⏱</button>
+                <button class="check-btn ${done ? 'done' : ''} ${frozen ? 'frozen' : ''}" onclick="incrementHabit('${h.id}')">
+                  ${btnLabel}
+                </button>
+              </div>
+            </div>
+            <div class="mini-week">
+              <span style="font-size:11px; color:var(--muted);">Last 7 days</span>
+              <div class="mini-dots">${miniDots}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Update Header Ring
+      const total = state.habits.length || 1;
+      const pct = Math.round((completedToday / total) * 100);
+      const circum = 119.38;
+      document.getElementById('ringFill').style.strokeDashoffset = circum - (pct / 100) * circum;
+      document.getElementById('ringText').textContent = `${pct}%`;
+    }
+
+    function renderStreaksView() {
+      const container = document.getElementById('streaksContainer');
+      const last28 = getLastNDays(28);
+
+      container.innerHTML = state.habits.map(h => {
+        const streak = calculateStreak(h);
+        const cells = last28.map(d => {
+          const k = formatDateKey(d);
+          const done = isHabitCompletedOn(h, k);
+          const frz = !!(h.freezes && h.freezes[k]);
+          return `<div class="heat-cell ${done ? 'done' : frz ? 'frozen' : ''}" title="${k}"></div>`;
+        }).join('');
+
+        return `
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>${h.emoji} ${h.name}</strong>
+              <span style="font-size:12px; color:var(--muted);">🔥 ${streak} days</span>
+            </div>
+            <div class="heatmap-grid">${cells}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderWidgetsView() {
+      const rows = document.getElementById('widgetPreviewRows');
+      const doneCount = state.habits.filter(h => isHabitCompletedOn(h, todayKey)).length;
+      document.getElementById('widgetPreviewStat').textContent = `${doneCount}/${state.habits.length} Done`;
+
+      rows.innerHTML = state.habits.slice(0, 4).map(h => {
+        const done = isHabitCompletedOn(h, todayKey);
+        return `
+          <div class="widget-item">
+            <span>${h.emoji} ${h.name}</span>
+            <span style="color:${done ? '#689675' : '#8E8C85'}">${done ? '●' : '○'}</span>
+          </div>
+        `;
+      }).join('');
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      document.getElementById('shortcutLinks').innerHTML = state.habits.map(h => {
+        const url = `${baseUrl}?quicklog=${encodeURIComponent(h.name)}`;
+        return `
+          <button class="btn" onclick="navigator.clipboard.writeText('${url}'); showToast('Copied Shortcut URL')">
+            Copy "${h.emoji} ${h.name}" Quick-Log URL
+          </button>
+        `;
+      }).join('');
+    }
+
+    function copyScriptableWidget() {
+      const appUrl = window.location.origin + window.location.pathname;
+      const snapshot = state.habits.slice(0, 4).map(h => ({
+        name: `${h.emoji} ${h.name}`,
+        done: isHabitCompletedOn(h, todayKey),
+        streak: calculateStreak(h)
+      }));
+
+      const script = `// Kanso iOS Home Screen Widget for Scriptable
+const APP_URL = "${appUrl}";
+const HABITS = ${JSON.stringify(snapshot)};
+
+let w = new ListWidget();
+w.backgroundColor = new Color("#1C1C1A");
+w.url = APP_URL;
+w.setPadding(14, 16, 14, 16);
+
+let title = w.addText("KANSO RITUALS");
+title.font = Font.boldSystemFont(10);
+title.textColor = new Color("#8E8C85");
+w.addSpacer(8);
+
+for (let h of HABITS) {
+  let row = w.addStack();
+  row.layoutHorizontally();
+  let name = row.addText(h.name);
+  name.font = Font.mediumSystemFont(13);
+  name.textColor = new Color("#F7F6F2");
+  row.addSpacer();
+  let status = row.addText(h.done ? "✓" : h.streak + "d");
+  status.font = Font.boldSystemFont(12);
+  status.textColor = new Color(h.done ? "#689675" : "#8E8C85");
+  w.addSpacer(5);
+}
+
+Script.setWidget(w);
+Script.complete();`;
+
+      navigator.clipboard.writeText(script);
+      showToast('Copied Scriptable Code');
+    }
+
+    // Modal Controls
+    function openHabitModal(id = '') {
+      const modal = document.getElementById('habitModal');
+      document.getElementById('editHabitId').value = id;
+      if (id) {
+        const h = state.habits.find(x => x.id === id);
+        document.getElementById('modalTitle').textContent = 'Edit Ritual';
+        document.getElementById('habitNameInput').value = h.name;
+        document.getElementById('habitEmojiInput').value = h.emoji;
+        document.getElementById('habitTargetInput').value = h.target;
+        document.getElementById('habitStepInput').value = h.step;
+        document.getElementById('habitUnitInput').value = h.unit || '';
+        document.getElementById('deleteBtn').style.display = 'block';
+        document.getElementById('freezeBtn').style.display = 'block';
+      } else {
+        document.getElementById('modalTitle').textContent = 'New Ritual';
+        document.getElementById('habitNameInput').value = '';
+        document.getElementById('habitEmojiInput').value = '🌿';
+        document.getElementById('habitTargetInput').value = 1;
+        document.getElementById('habitStepInput').value = 1;
+        document.getElementById('habitUnitInput').value = '';
+        document.getElementById('deleteBtn').style.display = 'none';
+        document.getElementById('freezeBtn').style.display = 'none';
+      }
+      modal.classList.add('open');
+    }
+
+    function closeHabitModal() {
+      document.getElementById('habitModal').classList.remove('open');
+    }
+
+    function saveHabitFromModal() {
+      const id = document.getElementById('editHabitId').value;
+      const name = document.getElementById('habitNameInput').value.trim();
+      if (!name) return;
+      const emoji = document.getElementById('habitEmojiInput').value.trim() || '🌿';
+      const target = parseFloat(document.getElementById('habitTargetInput').value) || 1;
+      const step = parseFloat(document.getElementById('habitStepInput').value) || 1;
+      const unit = document.getElementById('habitUnitInput').value.trim();
+
+      if (id) {
+        const h = state.habits.find(x => x.id === id);
+        if (h) {
+          h.name = name;
+          h.emoji = emoji;
+          h.target = target;
+          h.step = step;
+          h.unit = unit;
+        }
+      } else {
+        state.habits.push({
+          id: 'h_' + Date.now(),
+          name,
+          emoji,
+          target,
+          step,
+          unit,
+          logs: {},
+          freezes: {}
+        });
+      }
+      closeHabitModal();
+      saveState();
+    }
+
+    function toggleFreezeSelectedDate() {
+      const id = document.getElementById('editHabitId').value;
+      const h = state.habits.find(x => x.id === id);
+      if (!h) return;
+      h.freezes = h.freezes || {};
+      if (h.freezes[selectedDateKey]) {
+        delete h.freezes[selectedDateKey];
+      } else {
+        h.freezes[selectedDateKey] = true;
+      }
+      closeHabitModal();
+      saveState();
+    }
+
+    function deleteCurrentHabit() {
+      const id = document.getElementById('editHabitId').value;
+      state.habits = state.habits.filter(x => x.id !== id);
+      closeHabitModal();
+      saveState();
+    }
+
+    // Focus Timer
+    let timerInterval = null;
+    let timerSeconds = 1500;
+    let activeTimerHabitId = null;
+
+    function openTimerModal(habitId) {
+      activeTimerHabitId = habitId;
+      const h = state.habits.find(x => x.id === habitId);
+      document.getElementById('timerHabitTitle').textContent = `${h.emoji} ${h.name}`;
+      setTimerMinutes(25);
+      document.getElementById('timerModal').classList.add('open');
+    }
+
+    function closeTimerModal() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      document.getElementById('timerStartBtn').textContent = 'Start Focus';
+      document.getElementById('timerModal').classList.remove('open');
+    }
+
+    function setTimerMinutes( mins ) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      timerSeconds = mins * 60;
+      updateTimerText();
+      document.getElementById('timerStartBtn').textContent = 'Start Focus';
+    }
+
+    function updateTimerText() {
+      const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+      const s = String(timerSeconds % 60).padStart(2, '0');
+      document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    }
+
+    function toggleTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        document.getElementById('timerStartBtn').textContent = 'Resume';
+      } else {
+        document.getElementById('timerStartBtn').textContent = 'Pause';
+        timerInterval = setInterval(() => {
+          timerSeconds--;
+          updateTimerText();
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            if (activeTimerHabitId) incrementHabit(activeTimerHabitId, todayKey);
+            closeTimerModal();
+            showToast('Focus session complete!');
+          }
+        }, 1000);
+      }
+    }
+
+    // Backup & Restore
+    function exportData() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kanso-backup-${todayKey}.json`;
+      a.click();
+    }
+
+    function importData(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = evt => {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (parsed && Array.isArray(parsed.habits)) {
+            state = parsed;
+            saveState();
+            showToast('Backup restored');
+          }
+        } catch (err) {
+          showToast('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function switchView(viewName, btn) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(`view-${viewName}`).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAll();
+    }
+
+    function renderAll() {
+      renderWeekStrip();
+      renderHabits();
+      renderStreaksView();
+      renderWidgetsView();
+    }
+
+    checkQuickLogParam();
+    renderAll();
+  </script>
+</body>
+</html>
